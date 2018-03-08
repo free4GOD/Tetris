@@ -1,0 +1,28 @@
+/**
+ *
+ * @author Mauricio Sosa Giri (free4GOD)
+ */
+
+.gameover {
+    -fx-font-family: Hack;
+    -fx-fill: linear-gradient(from 0% 0% to 100% 100%, repeat, orange 0%, red 50%);
+    -fx-stroke: red;
+    -fx-stroke-width: 1px;
+    -fx-font-weight: bolder;
+}
+
+.paused {
+    -fx-font-family: Hack;
+    -fx-fill: linear-gradient(from 0% 0% to 100% 200%, repeat, orange 0%, yellow 50%);
+    -fx-stroke: red;
+    -fx-stroke-width: 1px;
+    -fx-font-weight: bolder;
+}
+
+.help  {
+    -fx-font-family: Hack;
+    -fx-fill: white;
+    -fx-stroke: black;
+    -fx-stroke-width: 1px;
+    -fx-font-weight: bolder;
+}
