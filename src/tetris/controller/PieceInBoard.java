@@ -162,11 +162,11 @@ public final class PieceInBoard {
     public final Piece createPiece() {
         Random random = new Random();
         int index = random.nextInt(7);
-        int[] stringPieceSelected = {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8}; //For debugging purpose only
+        /*int[] stringPieceSelected = {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8}; //For debugging purpose only
         if (this.maxPieceSelected < stringPieceSelected.length) {
             index = stringPieceSelected[this.maxPieceSelected];
             this.maxPieceSelected++;
-        }
+        }*/
         String name = choosePieceName(index);
         Piece piece = new Piece(name);
         piece.create();
