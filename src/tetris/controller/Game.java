@@ -239,4 +239,21 @@ public class Game {
         p.setActive(true);
         PieceInBoard.setActivePiece(p);
     }
+
+    public boolean checkFewLinesLeft() {
+        int lines = 0;
+        for (int y = 0; y < BoardSingleton.getHeight() - 10; y++) {
+            for (int x = 0; x < BoardSingleton.getWidth(); x++) {
+                if (BoardSingleton.getValue(x, y) == 1) {
+                    lines++;
+                    break;
+                }
+            }
+        }
+        if (lines == (BoardSingleton.getHeight() - 10)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

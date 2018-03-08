@@ -28,7 +28,7 @@ public class BoardSingleton {
 
     private BoardSingleton() {
         BoardSingleton.width = 20;
-        BoardSingleton.height = 25;
+        BoardSingleton.height = 28;
         BoardSingleton.board = new int[BoardSingleton.width][BoardSingleton.height];
         BoardSingleton.square = 0;
         BoardSingleton.piece = 0;

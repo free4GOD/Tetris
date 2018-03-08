@@ -76,6 +76,7 @@ public class MainWindow {
     private Group activeGroup;
     private final List<Rectangle> allRectangles;
     private final MediaPlayer player;
+    private boolean spanish;
 
     public MainWindow(Stage primaryStage) {
         this.Game = new Game();
@@ -112,6 +113,7 @@ public class MainWindow {
         this.showedHighScore = false;
         activeGroup = printSquares(PieceInBoard.getActivePiece().getSquares());
         player = Sound.createPlayer("sounds/music.wav");
+        this.spanish = false;
         run();
     }
 
@@ -143,6 +145,14 @@ public class MainWindow {
         text.setText("" + lines);
     }
 
+    private void setSpanish(boolean spanish) {
+        this.spanish = spanish;
+    }
+
+    private boolean getSpanish() {
+        return this.spanish;
+    }
+
     public void run() {
         timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(1), (ActionEvent evt) -> {
             if (Game.loop()) {
@@ -153,7 +163,7 @@ public class MainWindow {
                 timeline.pause();
                 List<Integer> linesCompleted = Game.checkLinesCompleted();
                 if (linesCompleted.size() > 0) {
-                    showMessageInHBox(linesCompleted.size() + " lines completed!");
+                    showMessageInHBox(linesCompleted.size() + translator(" lines completed!"));
                     removeLines(linesCompleted);
                     Game.setLines(linesCompleted.size());
                     setLines(Game.getLines());
@@ -161,13 +171,13 @@ public class MainWindow {
                     setPoints(Game.getPoints());
                     if (Game.checkLevel()) {
                         setLevel(Game.addLevel());
-                        showMessageInHBox("Reached level " + Game.getLevel() + "!");
+                        showMessageInHBox(translator("Reached level ") + Game.getLevel() + "!");
                     }
                     if (Game.checkHighScore()) {
                         Game.writeHighScore();
                         Game.setHighScore();
                         setHighScore(Game.getHighScore());
-                        showMessageInHBox("New highscore of " + Game.getHighScore());
+                        showMessageInHBox(translator("New highscore of ") + Game.getHighScore());
                         if (!this.showedHighScore) {
                             showNewHighScore();
                             this.showedHighScore = true;
@@ -179,6 +189,9 @@ public class MainWindow {
                 Game.play();
                 printRectangleInVBox();
                 activeGroup = printSquares(PieceInBoard.getActivePiece().getSquares());
+                if (Game.checkFewLinesLeft()) {
+                    fewLinesLeft();
+                }
                 timeline.setRate(Game.getTickFrecuency());
                 timeline.play();
             }
@@ -212,7 +225,7 @@ public class MainWindow {
         hbox.setStyle("-fx-border-width : 0 0 5 0; -fx-border-color: white;");
         hbox.setAlignment(Pos.CENTER);
         hbox.setId("hbox");
-        Text addTextToPane = addTextToPane("The TETRIS game! (F1 for help)", hbox);
+        Text addTextToPane = addTextToPane(translator("The TETRIS game! (F1 for help)"), hbox);
         addTextToPane.setId("theTetrisGame");
         return hbox;
     }
@@ -228,19 +241,25 @@ public class MainWindow {
         VBox vboxTop = new VBox();
         vboxTop.setId("vboxTop");
         VBox vboxMiddle = new VBox();
+        vboxMiddle.setId("vboxMiddle");
         VBox vboxBottom = new VBox();
         vboxBottom.setId("vboxBottom");
         setBoxProperties(vboxTop);
         setBoxProperties(vboxMiddle);
         setBoxProperties(vboxBottom);
-        addTextToPane("Next", vboxTop);
-        addTextToPane("Points", vboxMiddle);
+        Text next = addTextToPane(translator("Next"), vboxTop);
+        next.setId("next");
+        Text points = addTextToPane(translator("Points"), vboxMiddle);
+        points.setId("points");
         addTextToPane("0", vboxMiddle).setId("pointsNumbers");
-        addTextToPane("Lines", vboxMiddle);
+        Text lines = addTextToPane(translator("Lines"), vboxMiddle);
+        lines.setId("lines");
         addTextToPane("0", vboxMiddle).setId("lineNumbers");
-        addTextToPane("Level", vboxMiddle);
+        Text level = addTextToPane(translator("Level"), vboxMiddle);
+        level.setId("level");
         addTextToPane("1", vboxMiddle).setId("levelNumbers");
-        addTextToPane("Highscore", vboxBottom);
+        Text highscoretext = addTextToPane(translator("Highscore"), vboxBottom);
+        highscoretext.setId("highscoretext");
         Text highScore = new Text(String.valueOf(Game.getHighScore()));
         highScore.setId("highScore");
         highScore.setFont(Font.font("Hack", 20));
@@ -459,7 +478,8 @@ public class MainWindow {
 
     public void showNewHighScore() {
         Text text = new Text();
-        text.setText("NEW HIGHSCORE!");
+        text.setText(translator("NEW HIGHSCORE!"));
+        text.setId("newhighscore");
         text.setFont(Font.font(15));
         text.getStyleClass().add("gameover");
         StackPane stack = new StackPane();
@@ -486,7 +506,7 @@ public class MainWindow {
 
     private void showHighScoreInGameOver() {
         Text text = new Text();
-        text.setText("NEW HIGHSCORE!");
+        text.setText(translator("NEW HIGHSCORE!"));
         text.setFont(Font.font(50));
         text.getStyleClass().add("gameover");
         StackPane stack1 = new StackPane();
@@ -542,6 +562,10 @@ public class MainWindow {
         this.music = false;
         eventGame = (KeyEvent key) -> {
             switch (key.getCode()) {
+                case I:
+                    setSpanish(!getSpanish());
+                    translateTexts();
+                    break;
                 case Q:
                     quit();
                     break;
@@ -573,7 +597,7 @@ public class MainWindow {
                         Game.save();
                     });
                     timeline.play();
-                    showMessageInHBox("Saved game!");
+                    showMessageInHBox(translator("Saved game!"));
                     break;
                 case L:
                     timeline.pause();
@@ -582,6 +606,23 @@ public class MainWindow {
                         load();
                     });
                     timeline.play();
+                    break;
+                case F1:
+                    if (!Game.getPause()) {
+                        Game.setPause(true);
+                        timeline.pause();
+                        showPauseText(true);
+                    }
+                    showHelp();
+                    break;
+                case ESCAPE:
+                    if (Game.getPause()) {
+                        popup.hide();
+                        showPauseText(false);
+                        if (!Game.getGameOver()) {
+                            Game.setPause(false);
+                        }
+                    }
                     break;
             }
         };
@@ -639,7 +680,7 @@ public class MainWindow {
                         if (PieceInBoard.canRotate(true)) {
                             rotateGroup();
                         } else {
-                            showMessageInHBox("Cant rotate piece bounds overlap with something");
+                            showMessageInHBox(translator("Cant rotate piece bounds overlap with something"));
                             Sound.playSound("sounds/cantrotate.wav");
                         }
                     }
@@ -652,7 +693,7 @@ public class MainWindow {
                             rotateGroup();
                             timeline.play();
                         } else {
-                            showMessageInHBox("Cant rotate piece bounds overlap with something");
+                            showMessageInHBox(translator("Cant rotate piece bounds overlap with something"));
                             Sound.playSound("sounds/cantrotate.wav");
                         }
                     }
@@ -677,23 +718,6 @@ public class MainWindow {
                         showPauseText(true);
                     }
                     break;
-                case F1:
-                    if (!Game.getPause()) {
-                        Game.setPause(true);
-                        timeline.pause();
-                        showPauseText(true);
-                    }
-                    showHelp();
-                    break;
-                case ESCAPE:
-                    if (Game.getPause()) {
-                        popup.hide();
-                        showPauseText(false);
-                        if (!Game.getGameOver()) {
-                            Game.setPause(false);
-                        }
-                    }
-                    break;
                 case C:
                     PieceInBoard.printActivePieceCoords();
                     break;
@@ -704,29 +728,29 @@ public class MainWindow {
     }
 
     public void showHelp() {
-        Text text0 = setTextForHelpPopup("ESC: Close this popup");
-        Text text1 = setTextForHelpPopup("F1: Show this");
-        Text text2 = setTextForHelpPopup("LEFT: Move left");
-        Text text3 = setTextForHelpPopup("RIGHT: Move right");
-        Text text4 = setTextForHelpPopup("DOWN: Go down one more position");
-        Text text5 = setTextForHelpPopup("UP: Rotate right");
-        Text text6 = setTextForHelpPopup("Z: Rotate left");
-        Text text7 = setTextForHelpPopup("P: Pause/Resume");
-        Text text8 = setTextForHelpPopup("S: Save game");
-        Text text9 = setTextForHelpPopup("L: Load game");
-        Text text10 = setTextForHelpPopup("SPACE: Make piece go down faster");
-        Text text11 = setTextForHelpPopup("M: Play/Stop music");
-        Text text12 = setTextForHelpPopup("Q: Quit");
-        Text text13 = setTextForHelpPopup("N: New game");
+        Text text0 = setTextForHelpPopup(translator("ESC: Close this popup"));
+        Text text1 = setTextForHelpPopup(translator("F1: Show this"));
+        Text text2 = setTextForHelpPopup(translator("LEFT: Move left"));
+        Text text3 = setTextForHelpPopup(translator("RIGHT: Move right"));
+        Text text4 = setTextForHelpPopup(translator("DOWN: Go down one more position"));
+        Text text5 = setTextForHelpPopup(translator("UP: Rotate right"));
+        Text text6 = setTextForHelpPopup(translator("Z: Rotate left"));
+        Text text7 = setTextForHelpPopup(translator("P: Pause/Resume"));
+        Text text8 = setTextForHelpPopup(translator("S: Save game"));
+        Text text9 = setTextForHelpPopup(translator("L: Load game"));
+        Text text10 = setTextForHelpPopup(translator("SPACE: Make piece go down faster"));
+        Text text11 = setTextForHelpPopup(translator("M: Play/Stop music"));
+        Text text12 = setTextForHelpPopup(translator("Q: Quit"));
+        Text text13 = setTextForHelpPopup(translator("N: New game"));
+        Text text14 = setTextForHelpPopup(translator("I: Cambia a español"));
         VBox vboxHelp = new VBox();
         vboxHelp.setId("vboxHelp");
         vboxHelp.setPrefSize(scene.getWidth() - 200, height - 400);
         vboxHelp.setAlignment(Pos.CENTER);
         vboxHelp.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
-        vboxHelp.getChildren().addAll(text0, text1, text2, text3, text4, text5, text6, text7, text8, text9, text10, text11, text12, text13);
+        vboxHelp.getChildren().addAll(text0, text1, text2, text3, text4, text5, text6, text7, text8, text9, text10, text11, text12, text13, text14);
         popup.getContent().addAll(vboxHelp);
         popup.show(scene.getWindow());
-        popup.setHideOnEscape(false);
     }
 
     public Text setTextForHelpPopup(String string) {
@@ -740,9 +764,10 @@ public class MainWindow {
     public void showPauseText(boolean show) {
         StackPane stackPaused = new StackPane();
         Text pausedText = new Text();
-        pausedText.setText("PAUSED");
+        pausedText.setText(translator("PAUSED"));
         pausedText.setFont(Font.font(100));
         pausedText.getStyleClass().add("paused");
+        pausedText.setId("paused");
         stackPaused.setId("stackPaused");
         stackPaused.setPrefSize(paneWidth, paneHeight);
         stackPaused.getChildren().add(pausedText);
@@ -760,7 +785,7 @@ public class MainWindow {
         Text tetrisGame = (Text) scene.lookup("#theTetrisGame");
         Timeline timelineShowMessage = new Timeline();
         timelineShowMessage.getKeyFrames().add(new KeyFrame(Duration.seconds(3), (ActionEvent evt) -> {
-            tetrisGame.setText("The TETRIS game! (Press F1 for help)");
+            tetrisGame.setText(translator("The TETRIS game! (Press F1 for help)"));
         }));
         timelineShowMessage.setCycleCount(1);
         timelineShowMessage.setDelay(Duration.seconds(3));
@@ -875,6 +900,125 @@ public class MainWindow {
             activeGroup = printSquares(PieceInBoard.getPieceByNumber(Game.getActivePieceNumber()).getSquares());
         }
         timeline.play();
-        showMessageInHBox("Loaded game!");
+        showMessageInHBox(translator("Loaded game!"));
+    }
+
+    private void fewLinesLeft() {
+        showMessageInHBox(translator("Few space left!"));
+        Sound.playSound("sounds/fewLinesLeft.wav");
+    }
+
+    private String translator(String text) {
+        if (this.spanish) {
+            switch (text) {
+                case " lines completed!":
+                    return " lineas completadas";
+                case "Reached level ":
+                    return "Nivel alcanzado ";
+                case "New highscore of ":
+                    return "Nuevo puntaje de ";
+                case "Saved game!":
+                    return "Partida guardada";
+                case "Cant rotate piece bounds overlap with something":
+                    return "No puedes rotar la pieza se superpone con algo";
+                case "Loaded game!":
+                    return "Juego cargado!";
+                case "Few space left!":
+                    return "Poco espacio disponible!";
+                case "ESC: Close this popup":
+                    return "ESC: Cierra este menu";
+                case "F1: Show this":
+                    return "F1: Muestra la ayuda";
+                case "LEFT: Move left":
+                    return "IZQUIERDA: Mueve a la izquierda";
+                case "RIGHT: Move right":
+                    return "DERECHA: Mueve a la derecha";
+                case "DOWN: Go down one more position":
+                    return "ABAJO: Baja una posicion extra";
+                case "UP: Rotate right":
+                    return "ARRIBA: Rota a la derecha";
+                case "Z: Rotate left":
+                    return "Z: Rota a la izquierda";
+                case "P: Pause/Resume":
+                    return "P: Pausar/Resumir";
+                case "S: Save game":
+                    return "S: Guarda el juego";
+                case "L: Load game":
+                    return "L: Carga el juego";
+                case "SPACE: Make piece go down faster":
+                    return "ESPACIO: Desplazamiento rapido hacia abajo";
+                case "M: Play/Stop music":
+                    return "M: Musica/Silencio";
+                case "Q: Quit":
+                    return "Q: Salir";
+                case "N: New game":
+                    return "N: Nuevo juego";
+                case "I: Cambia a español":
+                    return "I: Change to english";
+                case "PAUSED":
+                    return "PAUSADO";
+                case "Next":
+                    return "Proxima";
+                case "Points":
+                    return "Puntos";
+                case "Highscore":
+                    return "Puntaje";
+                case "Lines":
+                    return "Lineas";
+                case "Level":
+                    return "Nivel";
+                case "The TETRIS game! (F1 for help)":
+                    return "El juego del TETRIS (F1 para ayuda)";
+                case "NEW HIGHSCORE!":
+                    return "NUEVO PUNTAJE";
+            }
+        } else {
+            switch (text) {
+                case "PAUSADO":
+                    return "PAUSED";
+                case "Proxima":
+                    return "Next";
+                case "Puntos":
+                    return "Points";
+                case "Puntaje":
+                    return "Highscore";
+                case "Lineas":
+                    return "Lines";
+                case "Nivel":
+                    return "Level";
+                case "El juego del TETRIS (F1 para ayuda)":
+                    return "The TETRIS game! (F1 for help)";
+                case "NUEVO PUNTAJE":
+                    return "NEW HIGHSCORE!";
+            }
+        }
+        return text;
+    }
+
+    private void translateTexts() {
+        Text text = (Text) scene.lookup("#next");
+        text.setText(translator(text.getText()));
+        text = (Text) scene.lookup("#points");
+        text.setText(translator(text.getText()));
+        text = (Text) scene.lookup("#lines");
+        text.setText(translator(text.getText()));
+        text = (Text) scene.lookup("#level");
+        text.setText(translator(text.getText()));
+        text = (Text) scene.lookup("#highscoretext");
+        text.setText(translator(text.getText()));
+        text = (Text) scene.lookup("#theTetrisGame");
+        text.setText(translator(text.getText()));
+        text = (Text) scene.lookup("#newhighscore");
+        if (text != null) {
+            text.setText(translator(text.getText()));
+        }
+        text = (Text) scene.lookup("#paused");
+        if (text != null) {
+            text.setText(translator(text.getText()));
+        }
+        if (popup.isShowing()) {
+            popup.getContent().clear();
+            showHelp();
+        }
     }
 }
